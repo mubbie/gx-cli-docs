@@ -1,0 +1,99 @@
+---
+title: "sweep"
+description: "Clean up merged branches, prune stale refs, and tidy up"
+---
+
+`gx sweep` scans your repo for cleanup opportunities and offers to delete merged branches, likely squash-merged branches, and stale remote tracking refs in one pass.
+
+## Usage
+
+```bash
+gx sweep [flags]
+```
+
+## Flags
+
+| Flag | Short | Description |
+|------|-------|-------------|
+| `--dry-run` | | Show what would be cleaned without making changes |
+| `--yes` | `-y` | Skip confirmation prompts |
+
+## Three Categories
+
+gx sweep identifies three types of cleanup targets:
+
+### 1. Merged Branches (safe to delete)
+
+Branches that are fully merged into the HEAD branch (main/master). Uses `git branch --merged`.
+
+### 2. Squash-Merged Branches
+
+Branches where all commits are already present in the HEAD branch, even though they were not merged via a merge commit. This handles the common GitHub "Squash and merge" workflow.
+
+gx uses `git cherry` to detect these: if every commit on the branch is prefixed with `-` (meaning an equivalent commit exists on the target), the branch is considered squash-merged.
+
+### 3. Stale Remote Tracking Refs
+
+Remote tracking references (`origin/...`) that point to branches that no longer exist on the remote. Detected via `git remote prune origin --dry-run`.
+
+## Example
+
+```bash
+$ gx sweep
+
+Scanning for cleanup opportunities...
+
+Merged branches (safe to delete):
+  feature/old-login
+  fix/typo
+
+Likely squash-merged branches:
+  feature/dashboard
+
+Stale remote tracking refs:
+  origin/feature/deleted-branch
+
+Summary: 2 merged, 1 likely squash-merged, 1 stale refs
+
+Delete merged branches? [y/N] y
+OK Deleted feature/old-login
+OK Deleted fix/typo
+
+Delete likely squash-merged branches? [y/N] y
+OK Deleted feature/dashboard
+
+Prune stale remote tracking refs? [y/N] y
+OK Pruned 1 stale remote tracking refs
+
+OK Cleanup complete.
+```
+
+<CodeGroup>
+```bash Dry run
+$ gx sweep --dry-run
+
+Scanning for cleanup opportunities...
+
+Merged branches (safe to delete):
+  feature/old-login
+
+Summary: 1 merged, 0 likely squash-merged, 0 stale refs
+
+DRY RUN would delete 1 branches, 0 stale refs
+```
+
+```bash Skip prompts
+$ gx sweep -y
+```
+</CodeGroup>
+
+<Warning>
+Squash-merged branches are detected heuristically. While the `git cherry` method is reliable in most cases, review the list before confirming deletion. Merged branches use the safe `-d` flag, while squash-merged branches use `-D` (force delete) since git does not recognize them as merged.
+</Warning>
+
+<Accordion title="Additional behavior">
+- The current branch and HEAD branch are never included in cleanup candidates
+- After deletion, gx also cleans stale entries from the stack config (`.git/gx/stack.json`)
+- If nothing needs cleanup, gx prints `OK Nothing to clean up. Repository is tidy!`
+- Each category is confirmed separately unless `--yes` is used
+</Accordion>

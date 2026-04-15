@@ -1,0 +1,98 @@
+---
+title: "oops"
+description: "Quick-fix the last commit. Amend message, add forgotten files, or both."
+---
+
+`gx oops` is a safer, friendlier wrapper around `git commit --amend`. It lets you fix the last commit message, add forgotten files, or do both at once.
+
+## Usage
+
+```bash
+gx oops [flags]
+```
+
+## Flags
+
+| Flag | Short | Description |
+|------|-------|-------------|
+| `--message` | `-m` | New commit message |
+| `--add` | | File(s) to add to the last commit (repeatable) |
+| `--dry-run` | | Show what would change without making changes |
+| `--force` | | Allow amending even if the commit has already been pushed |
+
+## Behavior
+
+- **No flags**: Opens your editor to amend the commit message interactively
+- **`-m` only**: Replaces the commit message
+- **`--add` only**: Adds files to the last commit without changing the message (`--no-edit`)
+- **Both `-m` and `--add`**: Adds files and changes the message in one operation
+
+## Examples
+
+<CodeGroup>
+```bash Fix the commit message
+$ gx oops -m "fix: resolve login redirect bug"
+
+Last commit: "fix login" (a1b2c3d)
+
+  Amending message:
+    Before: "fix login"
+    After:  "fix: resolve login redirect bug"
+
+Proceed? [y/N] y
+
+OK Commit message amended.
+```
+
+```bash Add a forgotten file
+$ gx oops --add src/auth.go
+
+Last commit: "add auth module" (b2c3d4e)
+
+  Adding to last commit:
+    + src/auth.go
+
+Proceed? [y/N] y
+
+OK File added to last commit.
+```
+
+```bash Both at once
+$ gx oops --add src/auth.go --add src/auth_test.go -m "add auth module with tests"
+
+Last commit: "add auth" (b2c3d4e)
+
+  Adding to last commit:
+    + src/auth.go
+    + src/auth_test.go
+
+  Amending message:
+    Before: "add auth"
+    After:  "add auth module with tests"
+
+Proceed? [y/N] y
+
+OK File added and commit message amended.
+```
+
+```bash Dry run
+$ gx oops --add src/forgot.go --dry-run
+
+Last commit: "initial commit" (c3d4e5f)
+
+DRY RUN. No changes will be made
+
+  Would add src/forgot.go to last commit
+```
+</CodeGroup>
+
+<Warning>
+**Pushed commits**: By default, `gx oops` refuses to amend a commit that has already been pushed to a remote branch. Amending pushed commits rewrites shared history and can cause problems for collaborators. Use `--force` to override this safety check if you know what you are doing.
+</Warning>
+
+<Accordion title="Edge cases">
+- If a file passed to `--add` does not exist, gx exits with `ERROR File not found: <path>`
+- If a file passed to `--add` has no changes (clean in `git status`), gx skips it with `WARN Skipping <file>: no changes detected`
+- If all `--add` files are skipped and no `-m` is provided, gx prints `> No files with changes to add.` and exits
+- Using `--add .` stages everything, similar to `git add .`
+</Accordion>

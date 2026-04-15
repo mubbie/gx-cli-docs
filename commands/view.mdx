@@ -1,0 +1,75 @@
+---
+title: "view"
+description: "Show the current stack at a glance"
+---
+
+`gx view` shows a compact view of your current branch's stack position, including PR status when `gh` (GitHub CLI) is available.
+
+## Usage
+
+```bash
+gx view
+```
+
+## Behavior
+
+`gx view` adapts its output based on where you are:
+
+### On a stacked branch
+
+Shows the full stack chain with PR status, ahead count, age, and a marker for the current branch:
+
+```
+main
+  <- feature/auth           #12  + approved    3 ahead   5 min ago
+  <- feature/tests          #13  o reviewing   2 ahead   2 hours ago  <
+  <- feature/dashboard        no PR            1 ahead   1 day ago
+```
+
+The `<` marker indicates your current branch.
+
+### On trunk (main/master)
+
+Shows all stacks branching from trunk:
+
+```
+You're on main (trunk)
+
+Stacks branching from main:
+  <- feature/auth -> feature/tests -> feature/dashboard   (3 branches)
+  <- fix/login
+```
+
+### On an untracked branch
+
+If the current branch is not part of a stack:
+
+```
+> Current branch (my-feature) is not part of a stack.
+  vs main: 5 ahead, 2 behind
+
+  Tip: Use `gx stack` to start stacking, or `gx graph` to see all branches.
+```
+
+## PR Status
+
+When the GitHub CLI (`gh`) is installed, gx fetches PR status for each branch and shows:
+
+| Status | Display | Meaning |
+|--------|---------|---------|
+| Approved | `+ approved` | PR has been approved |
+| Changes requested | `x changes` | Reviewer requested changes |
+| Open/reviewing | `o reviewing` | PR is open and under review |
+| Merged | `+ merged` | PR has been merged |
+| No PR | `no PR` | No pull request found for this branch |
+
+<Info>
+PR status fetching requires the `gh` CLI to be installed and authenticated. If `gh` is not available, the PR column is simply omitted.
+</Info>
+
+<Accordion title="Details">
+- The stack chain is built by walking up from the current branch to trunk, then down through descendants
+- The "ahead" count is relative to each branch's parent, not trunk
+- The "age" column shows when the branch was last committed to
+- On trunk, single-branch stacks show just the branch name; multi-branch stacks show the full chain with a count
+</Accordion>

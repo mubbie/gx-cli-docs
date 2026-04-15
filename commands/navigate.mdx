@@ -1,0 +1,122 @@
+---
+title: "up / down / top / bottom"
+description: "Navigate the branch stack without remembering branch names"
+---
+
+Four commands for moving through the branch stack by position rather than by name.
+
+## Commands
+
+| Command | Description |
+|---------|-------------|
+| `gx up` | Move to the child branch (one level up the stack) |
+| `gx down` | Move to the parent branch (one level down the stack) |
+| `gx top` | Jump to the top of the stack (leaf branch) |
+| `gx bottom` | Jump to the bottom of the stack (first branch above trunk) |
+
+## `gx up`
+
+Moves to the child branch. If the current branch has exactly one child, switches to it:
+
+```bash
+$ gx up
+OK Moved up: feature/auth -> feature/tests
+```
+
+If there are multiple children (a fork in the stack), gx lists them and asks you to use `gx switch`:
+
+```
+> Multiple branches stacked on feature/auth:
+>   feature/tests
+>   feature/dashboard
+> Use `gx switch` to pick one.
+```
+
+If already at the top:
+
+```
+> Already at the top of the stack.
+```
+
+## `gx down`
+
+Moves to the parent branch:
+
+```bash
+$ gx down
+OK Moved down: feature/tests -> feature/auth
+```
+
+When reaching trunk:
+
+```
+> Moved down to main (trunk).
+```
+
+If the branch is not in the stack:
+
+```
+> feature/random is not in the stack. Use `gx switch` to navigate.
+```
+
+## `gx top`
+
+Jumps to the leaf of the stack (the topmost branch with no children):
+
+```bash
+$ gx top
+OK Jumped to top: feature/auth -> feature/dashboard
+```
+
+If the stack forks, gx cannot determine a single top:
+
+```
+> Stack branches at feature/auth. Cannot determine a single top.
+> Use `gx switch` to pick a specific branch.
+```
+
+## `gx bottom`
+
+Jumps to the first branch in the stack (the one directly above trunk):
+
+```bash
+$ gx bottom
+OK Jumped to bottom: feature/dashboard -> feature/auth
+```
+
+When run from trunk, enters the stack:
+
+```bash
+# On main with one stack
+$ gx bottom
+OK Jumped to bottom: main -> feature/auth
+```
+
+If trunk has multiple stacks branching from it:
+
+```
+> Multiple stacks branching from main:
+>   feature/auth
+>   fix/login
+> Use `gx switch` to pick one.
+```
+
+## Fork Handling
+
+All four navigation commands handle forks (branches with multiple children) gracefully:
+
+- **`gx up`** and **`gx top`** stop at forks and list the options
+- **`gx down`** and **`gx bottom`** always have a single path (each branch has exactly one parent)
+- Cycle detection prevents infinite loops from corrupted configs
+
+<Info>
+All navigation commands warn if you have uncommitted changes: `WARN You have uncommitted changes. They may conflict with the target branch.`
+</Info>
+
+<Accordion title="Details">
+- Navigation uses the stack config (`.git/gx/stack.json`) to determine parent/child relationships
+- `gx top` walks up from the current branch, following single children until reaching a leaf or fork
+- `gx bottom` walks down from the current branch toward trunk, stopping at the first branch whose parent is trunk
+- All commands include cycle detection to handle corrupted stack configs safely
+- If gx detects a cycle, it prints `WARN Cycle detected in stack config.` and stops
+</Accordion>

@@ -1,0 +1,75 @@
+---
+title: "who"
+description: "Show who knows a file, directory, or repo best"
+---
+
+`gx who` identifies the top contributors to your repo by commit count, with smart deduplication to merge multiple git identities belonging to the same person.
+
+## Usage
+
+```bash
+gx who [path] [flags]
+```
+
+## Arguments
+
+| Argument | Description |
+|----------|-------------|
+| `path` | File or directory to analyze (default: entire repo) |
+
+## Flags
+
+| Flag | Short | Description |
+|------|-------|-------------|
+| `--number` | `-n` | Number of contributors to show (default: 5) |
+| `--since` | | Only consider commits after this date (e.g., `2024-01-01`) |
+| `--no-limit` | | Remove file cap for directory analysis |
+
+## Example Output
+
+```
+ #  Author    Email                    Commits  Last Active
+ 1  You       alice@example.com        142      2 hours ago
+ 2  Bob       bob@example.com          89       3 days ago
+ 3  Charlie   charlie@co.com           45       1 week ago
+ 4  Dana      dana@example.com         23       2 weeks ago
+ 5  Eve       eve@co.com, eve@gh.com   12       1 month ago
+
+You: Alice <alice@example.com>
+```
+
+## Identity Deduplication
+
+Git users often have multiple identities (personal email, work email, GitHub noreply address). gx merges these using a union-find algorithm that links identities sharing any of:
+
+- **Email address** -- exact match
+- **Email username** -- the part before `@` (e.g., `alice` from `alice@example.com` and `alice@work.com`)
+- **Author name** -- case-insensitive match
+
+This means a contributor who has committed as "Alice <alice@gmail.com>" and "Alice <alice@work.com>" appears as a single entry with both emails listed.
+
+The "Email" column shows all known email addresses for that contributor. The "You" row is highlighted based on matching your `git config user.name` or `git config user.email`.
+
+## Examples
+
+<CodeGroup>
+```bash Top 10 contributors
+$ gx who -n 10
+```
+
+```bash Contributors since a date
+$ gx who --since 2024-06-01
+```
+
+```bash Top 3 contributors
+$ gx who -n 3
+```
+</CodeGroup>
+
+<Accordion title="How it works">
+- Uses `git shortlog -sne --all` to gather all contributors across all branches
+- Applies union-find deduplication on email, email username, and author name
+- "Last Active" is determined by the most recent commit from that author in the repo
+- The current user is detected via `git config user.name` and `git config user.email`
+- Sorting is by total commit count (descending)
+</Accordion>

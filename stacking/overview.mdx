@@ -1,0 +1,140 @@
+---
+title: "Stacking Overview"
+description: "What stacked branches are and how gx manages them"
+---
+
+Stacked branches (or stacked PRs) are a workflow where you build a chain of dependent branches, each one based on the previous. This lets you break large changes into small, reviewable pieces without waiting for each PR to merge before starting the next.
+
+## The Problem
+
+Without stacking, you either:
+- **Wait**: Finish PR 1, wait for review and merge, then start PR 2. Slow.
+- **Branch from main**: Start PR 2 from main, duplicate or conflict with PR 1's changes. Messy.
+- **Stack manually**: Create PR 2 on top of PR 1's branch, but then juggle rebasing when PR 1 changes. Error-prone.
+
+## How gx Solves It
+
+gx tracks parent-child relationships between branches and automates the rebasing, pushing, and bookkeeping:
+
+```
+main
+  <- feature/auth          PR #1 (3 commits)
+    <- feature/tests       PR #2 (2 commits, depends on auth)
+      <- feature/dashboard PR #3 (4 commits, depends on tests)
+```
+
+When `feature/auth` changes (new commits, or after code review updates), `gx sync --stack` rebases the entire chain in order and pushes all branches.
+
+## Workflow
+
+### 1. Create the stack
+
+```bash
+gx stack feature/auth main
+# ... make commits ...
+gx stack feature/tests feature/auth
+# ... make commits ...
+gx stack feature/dashboard feature/tests
+```
+
+### 2. Visualize
+
+```bash
+gx graph
+```
+
+### 3. Sync after changes
+
+When you update a branch (e.g., address PR review feedback on `feature/auth`):
+
+```bash
+gx sync --stack
+```
+
+This rebases `feature/tests` and `feature/dashboard` in sequence, then pushes all three.
+
+### 4. Navigate
+
+Move through the stack without remembering branch names:
+
+```bash
+gx up       # Move to child
+gx down     # Move to parent
+gx top      # Jump to leaf
+gx bottom   # Jump to first branch above trunk
+```
+
+### 5. Retarget after merge
+
+When `feature/auth` is merged into `main`, retarget `feature/tests`:
+
+```bash
+gx retarget feature/tests main
+```
+
+This rebases `feature/tests` onto `main`, pushes, updates the config, and retargets the GitHub PR.
+
+### 6. Clean up
+
+```bash
+gx sweep         # Delete merged branches
+gx nuke --orphans # Delete orphaned branches
+```
+
+## The stack.json Format
+
+gx stores stack relationships in `.git/gx/stack.json`:
+
+```json
+{
+  "branches": {
+    "feature/auth": {
+      "parent": "main",
+      "parent_head": "a1b2c3d4e5f6..."
+    },
+    "feature/tests": {
+      "parent": "feature/auth",
+      "parent_head": "b2c3d4e5f6g7..."
+    },
+    "feature/dashboard": {
+      "parent": "feature/tests",
+      "parent_head": "c3d4e5f6g7h8..."
+    }
+  },
+  "metadata": {
+    "main_branch": "main",
+    "last_updated": "2025-04-15T10:30:00Z"
+  }
+}
+```
+
+### Fields
+
+| Field | Description |
+|-------|-------------|
+| `branches.<name>.parent` | The parent branch name |
+| `branches.<name>.parent_head` | The parent's HEAD SHA when the relationship was last synced |
+| `branches.<name>.pr_number` | PR number (optional, for future use) |
+| `metadata.main_branch` | The trunk branch name |
+| `metadata.last_updated` | Timestamp of last config update |
+
+### Key Properties
+
+- **Stored in `.git/gx/`**: Not tracked by git, local to each clone
+- **Auto-created**: First `gx stack` call creates it if missing
+- **Self-healing**: `gx graph` detects and repairs missing relationships
+- **Legacy migration**: Old `{"relationships": {"child": "parent"}}` format is auto-migrated
+
+## Related Commands
+
+| Command | Purpose |
+|---------|---------|
+| [`gx init`](/commands/init) | Initialize stacking config |
+| [`gx stack`](/commands/stack) | Create a stacked branch |
+| [`gx sync`](/commands/sync) | Rebase and push the stack |
+| [`gx retarget`](/commands/retarget) | Move a branch to a new parent |
+| [`gx graph`](/commands/graph) | Visualize the stack tree |
+| [`gx up/down/top/bottom`](/commands/navigate) | Navigate the stack |
+| [`gx parent`](/commands/parent) | Print parent branch (for scripting) |
+| [`gx view`](/commands/view) | Stack overview with PR status |
+| [`gx handoff`](/commands/handoff) | Generate branch summary |

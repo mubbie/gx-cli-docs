@@ -1,0 +1,124 @@
+---
+title: "sync"
+description: "Rebase and push a chain of stacked branches in sequence"
+---
+
+`gx sync` rebases an entire stack of branches in the correct order, then pushes each one with `--force-with-lease`. It automatically detects the best rebase strategy based on your git version.
+
+## Usage
+
+```bash
+gx sync [branches...] [flags]
+gx sync --stack [flags]
+```
+
+## Arguments
+
+| Argument | Description |
+|----------|-------------|
+| `branches...` | Explicit list of branches to sync in order |
+
+## Flags
+
+| Flag | Description |
+|------|-------------|
+| `--stack` | Auto-detect and sync the current branch's full stack (root to leaf) |
+| `--dry-run` | Show what would happen without making changes |
+
+## Rebase Strategies
+
+gx chooses the best strategy based on your git version:
+
+### `--update-refs` (Git 2.38+)
+
+The preferred strategy. Rebases the entire chain in a single operation by checking out the tip branch and running:
+
+```bash
+git rebase --update-refs <root>
+```
+
+This atomically updates all intermediate branch refs. It is only used when the stack is a **linear chain** (no siblings).
+
+### `--onto` fallback (Git < 2.38 or non-linear stacks)
+
+Falls back to iterating through branches one at a time:
+
+```bash
+git rebase --onto <new-parent-sha> <old-parent-sha> <branch>
+```
+
+This uses the stored `parent_head` values to compute the correct `--onto` base for each branch.
+
+## Examples
+
+<CodeGroup>
+```bash Sync current stack
+$ gx sync --stack
+
+Syncing stack: main -> feature/auth -> feature/tests -> feature/dashboard
+
+  Rebasing stack onto main (using --update-refs)...
+OK Rebased feature/auth
+OK Rebased feature/tests
+OK Rebased feature/dashboard
+
+  Pushing updated branches...
+OK Pushed feature/auth
+OK Pushed feature/tests
+OK Pushed feature/dashboard
+
+OK Stack sync complete. 3 branches updated.
+```
+
+```bash Dry run
+$ gx sync --stack --dry-run
+
+Syncing stack: main -> feature/auth -> feature/tests
+
+DRY RUN. No changes will be made
+
+  Would sync stack: main -> feature/auth -> feature/tests
+
+  Git 2.44 detected, will use --update-refs strategy
+  Push feature/auth, feature/tests with --force-with-lease
+```
+
+```bash Explicit branches
+$ gx sync main feature/auth feature/tests
+```
+</CodeGroup>
+
+## Conflict Handling
+
+If a rebase conflict occurs, gx stops and shows:
+
+```
+ERROR Rebase conflict encountered
+
+  Conflicting files:
+    src/auth.go
+    src/config.go
+
+  To resolve:
+    1. Fix the conflicts in the listed files
+    2. Run: git add . && git rebase --continue
+    3. Run: gx sync feature/tests feature/dashboard
+       (to continue syncing the rest of the stack)
+
+  Sync stopped. Downstream branches were not updated.
+```
+
+After resolving conflicts and completing the rebase, you can re-run `gx sync` with the remaining branches to continue.
+
+<Warning>
+`gx sync` pushes with `--force-with-lease` to the remote. This is safe for branches you own but can overwrite remote changes made by others. Coordinate with collaborators before syncing shared branches.
+</Warning>
+
+<Accordion title="Details">
+- The chain auto-detection walks up from the current branch to the root, then down through all descendants
+- At least 2 branches are needed (root + 1 child) for sync to run
+- If the stack has 5+ branches, gx asks for confirmation before proceeding
+- After a successful sync, `parent_head` values are updated for all synced branches
+- The `--onto` fallback captures pre-rebase SHAs before starting, so each branch gets the correct old base even as branches are rebased in sequence
+- If `--update-refs` detects siblings in the stack, it falls back to `--onto` iteration with a message
+</Accordion>

@@ -1,0 +1,74 @@
+---
+title: "switch"
+description: "Branch switcher with search and rich context"
+---
+
+`gx switch` provides an interactive branch picker with search filtering, sorted by most recently committed. Each branch shows its age and author for quick context.
+
+## Usage
+
+```bash
+gx switch [- | branch]
+```
+
+## Arguments
+
+| Argument | Description |
+|----------|-------------|
+| `-` | Switch to the previous branch (like `git switch -`) |
+| `branch` | Switch directly to a named branch |
+| *(none)* | Open the interactive picker |
+
+## Interactive Picker
+
+When run without arguments, gx lists all branches (excluding the current one) sorted by most recent commit:
+
+```
+    1  feature/auth           5 minutes ago   Alice
+    2  feature/dashboard      2 hours ago     Bob
+    3  fix/login-redirect     3 days ago      Alice
+    4  chore/deps             1 week ago      Charlie
+
+Enter a number to switch, text to filter, q to cancel
+```
+
+- **Enter a number** to switch to that branch
+- **Type text** to filter branches by name (case-insensitive substring match)
+- **Enter `q`** or press Enter with no input to cancel
+
+<Tip>
+If there is only one other branch, gx switches to it automatically without showing the picker.
+</Tip>
+
+## Quick Switch
+
+The `-` shortcut switches to the previous branch, just like `git switch -`:
+
+```bash
+$ gx switch -
+OK Switched to feature/auth
+```
+
+## Examples
+
+```bash
+# Interactive picker
+$ gx switch
+
+# Switch to previous branch
+$ gx switch -
+
+# Direct switch (no picker)
+$ gx switch feature/auth
+```
+
+<Info>
+If you have uncommitted changes, gx prints a warning before showing the picker: `WARN You have uncommitted changes. They may conflict with the target branch.`
+</Info>
+
+<Accordion title="Edge cases">
+- If there are no other branches, gx prints `> No other branches to switch to.`
+- Branch names longer than 45 characters are truncated with `...` in the picker display
+- The picker supports repeated filtering -- entering new text replaces the previous filter
+- If `gx switch -` has no previous branch (new repo), gx prints `ERROR No previous branch to switch to.`
+</Accordion>

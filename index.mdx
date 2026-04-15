@@ -1,97 +1,38 @@
 ---
-title: "Introduction"
-description: "Welcome to the new home for your documentation"
+title: "gx"
+description: "Git Productivity Toolkit"
 ---
 
-## Setting up
+**gx** is a command-line tool that bundles 25 focused productivity commands into a single binary. Each command solves a specific daily git friction point.
 
-Get your documentation site up and running in minutes.
-
-<Card
-  title="Start here"
-  icon="rocket"
-  href="/quickstart"
-  horizontal
->
-  Follow our three step quickstart guide.
-</Card>
-
-## Make it yours
-
-Design a docs site that looks great and empowers your users.
-
-<Columns cols={2}>
-  <Card
-    title="Edit locally"
-    icon="pen-to-square"
-    href="/development"
-  >
-    Edit your docs locally and preview them in real time.
+<CardGroup cols={3}>
+  <Card title="Everyday" icon="keyboard" href="/commands/undo">
+    undo, oops, switch, context, sweep, shelf
   </Card>
-  <Card
-    title="Customize your site"
-    icon="palette"
-    href="/essentials/settings"
-  >
-    Customize the design and colors of your site to match your brand.
+  <Card title="Insight" icon="magnifying-glass" href="/commands/who">
+    who, recap, drift, conflicts, handoff, view
   </Card>
-    <Card
-    title="Set up navigation"
-    icon="map"
-    href="/essentials/navigation"
-  >
-    Organize your docs to help users find what they need and succeed with your product.
+  <Card title="Stacking" icon="layer-group" href="/stacking/overview">
+    stack, sync, retarget, graph, up, down, top, bottom, parent
   </Card>
-  <Card
-    title="API documentation"
-    icon="terminal"
-    href="/api-reference/introduction"
-  >
-    Auto-generate API documentation from OpenAPI specifications.
-  </Card>
-</Columns>
+</CardGroup>
 
-## Create beautiful pages
+## Design Principles
 
-Everything you need to create world-class documentation.
+- Every command does one thing well
+- All destructive commands require confirmation and support `--dry-run`
+- Colored, human-friendly output
+- Zero configuration required
+- No external services or authentication needed
+- Works in any git repo
 
-<Columns cols={2}>
-  <Card
-    title="Write with MDX"
-    icon="pen-fancy"
-    href="/essentials/markdown"
-  >
-    Use MDX to style your docs pages.
-  </Card>
-  <Card
-    title="Code samples"
-    icon="code"
-    href="/essentials/code"
-  >
-    Add sample code to demonstrate how to use your product.
-  </Card>
-  <Card
-    title="Images"
-    icon="image"
-    href="/essentials/images"
-  >
-    Display images and other media.
-  </Card>
-  <Card
-    title="Reusable snippets"
-    icon="recycle"
-    href="/essentials/reusable-snippets"
-  >
-    Write once and reuse across your docs.
-  </Card>
-</Columns>
+## Quick Example
 
-## Need inspiration?
-
-<Card
-  title="See complete examples"
-  icon="stars"
-  href="https://mintlify.com/customers"
->
-  Browse our showcase of exceptional documentation sites.
-</Card>
+```bash
+gx context                    # See where you are
+gx switch                     # Pick a branch interactively
+gx undo                       # Undo the last git action
+gx oops -m "better message"   # Fix the last commit
+gx shelf push "wip"           # Stash with a name you'll remember
+gx who                        # Who knows this repo best
+```

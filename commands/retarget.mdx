@@ -1,0 +1,115 @@
+---
+title: "retarget"
+description: "Rebase a branch onto a new base and update stack config"
+---
+
+`gx retarget` moves a branch from one parent to another using `git rebase --onto`, updates the stack config, pushes the result, and optionally retargets the GitHub PR.
+
+## Usage
+
+```bash
+gx retarget [branch] <new-target> [flags]
+```
+
+## Arguments
+
+| Argument | Description |
+|----------|-------------|
+| `branch` | Branch to retarget (default: current branch) |
+| `new-target` | New base branch to rebase onto |
+
+If only one argument is provided, it is treated as the new target and the current branch is retarget.
+
+## Flags
+
+| Flag | Description |
+|------|-------------|
+| `--dry-run` | Show what would happen without making changes |
+
+## What Happens
+
+1. **Fetches** the latest from remote
+2. **Rebases** the branch onto the new target using `git rebase --onto origin/<new-target> <old-parent-head> <branch>`
+3. **Pushes** with `--force-with-lease`
+4. **Updates** the stack config to record the new parent
+5. **Retargets the PR** via `gh pr edit <branch> --base <new-target>` (if `gh` is available)
+
+## Examples
+
+<CodeGroup>
+```bash Retarget current branch
+$ gx retarget develop
+
+Retargeting feature/auth onto develop...
+
+  Old parent: main
+  New parent: develop
+
+Retarget feature/auth onto develop? [y/N] y
+
+  Fetching latest from remote...
+  Rebasing feature/auth onto origin/develop (using --onto)...
+OK Rebased and pushed feature/auth
+  Stack config updated: feature/auth -> develop (was: main)
+OK PR for feature/auth automatically retargeted to develop
+```
+
+```bash Retarget a specific branch
+$ gx retarget feature/tests feature/auth
+```
+
+```bash Dry run
+$ gx retarget develop --dry-run
+
+Retargeting feature/auth onto develop...
+
+  Old parent: main
+  New parent: develop
+
+DRY RUN. No changes will be made
+
+  Would retarget feature/auth:
+    Current parent: main
+    New parent:     develop
+
+  Steps:
+    1. Fetch remote
+    2. Run: git rebase --onto origin/develop <old-parent-sha> feature/auth
+    3. Push with --force-with-lease
+    4. Update stack config
+    5. Attempt PR retarget via gh CLI
+```
+</CodeGroup>
+
+## Auto PR Retarget
+
+If the GitHub CLI (`gh`) is installed and authenticated, gx automatically runs:
+
+```bash
+gh pr edit <branch> --base <new-target>
+```
+
+If this succeeds, you see `OK PR for <branch> automatically retargeted to <new-target>`. If it fails (no PR exists, or gh is not available), gx prints a reminder: `WARN Remember to retarget the PR for <branch> to <new-target>.`
+
+## Conflict Handling
+
+If a rebase conflict occurs during retargeting:
+
+```
+ERROR Rebase conflict encountered
+
+  Conflicting files:
+    src/auth.go
+
+  To resolve:
+    1. Fix the conflicts
+    2. Run: git add . && git rebase --continue
+    3. Run: gx retarget feature/auth develop
+```
+
+<Accordion title="Details">
+- If the branch is already based on the new target, gx prints `> <branch> is already based on <target>. Nothing to do.`
+- If no saved parent exists in the stack config, gx falls back to using the merge base and prints a warning
+- The rebase uses `origin/<new-target>` when the remote branch exists, ensuring you rebase onto the latest remote state
+- Uses the stored `parent_head` SHA as the old base for `--onto`, which is more reliable than using the branch name when branches have been rebased
+</Accordion>

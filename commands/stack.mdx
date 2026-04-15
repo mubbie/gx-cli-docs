@@ -1,0 +1,65 @@
+---
+title: "stack"
+description: "Create a new branch on top of a parent branch"
+---
+
+`gx stack` creates a new branch based on a parent branch and records the relationship in the stack config. This is the foundation for stacked PR workflows.
+
+## Usage
+
+```bash
+gx stack <new-branch> <parent-branch>
+```
+
+## Arguments
+
+| Argument | Description |
+|----------|-------------|
+| `new-branch` | Name of the branch to create |
+| `parent-branch` | Branch to create it on top of |
+
+Both arguments are required.
+
+## Example
+
+```bash
+$ gx stack feature/auth main
+
+OK Created feature/auth on top of main
+  Relationship saved to stack config.
+```
+
+Then stack another branch on top:
+
+```bash
+$ gx stack feature/tests feature/auth
+
+OK Created feature/tests on top of feature/auth
+  Relationship saved to stack config.
+```
+
+## What Happens
+
+1. Creates the new branch at the tip of the parent branch (`git checkout -b <new> <parent>`)
+2. Records the parent-child relationship in `.git/gx/stack.json`
+3. Stores the parent's current HEAD SHA as `parent_head` (used by `gx sync` and `gx retarget` to know the exact base point)
+4. Switches you to the new branch
+
+## Parent Head Tracking
+
+When gx creates a stacked branch, it records the parent's HEAD SHA at that moment. This `parent_head` value is critical for accurate rebasing:
+
+- `gx sync` uses it to know exactly which commits belong to each branch in the chain
+- `gx retarget` uses it as the `--onto` base when moving a branch to a new parent
+- It is updated automatically after each successful sync
+
+<Info>
+If you have uncommitted changes when running `gx stack`, gx prints a warning: `WARN You have uncommitted changes. They will carry over to the new branch.` The branch is still created -- your changes come along.
+</Info>
+
+<Accordion title="Edge cases">
+- If the new branch already exists, gx prints `ERROR Branch '<name>' already exists.`
+- If the parent branch does not exist, gx prints `ERROR Parent branch '<name>' does not exist.`
+- If fewer than 2 arguments are provided, gx prints `ERROR Usage: gx stack <new-branch> <parent-branch>`
+- The stack config is auto-created if it does not exist yet (equivalent to running `gx init` first)
+</Accordion>

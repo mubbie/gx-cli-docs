@@ -1,0 +1,72 @@
+---
+title: "graph"
+description: "Visualize the branch stack tree"
+---
+
+`gx graph` displays a tree visualization of all branches and their parent-child relationships, with status indicators for the current branch, merged branches, and orphaned branches.
+
+## Usage
+
+```bash
+gx graph
+```
+
+## Example Output
+
+```
+Branch Stack:
+
+|-- main
+|   |-- feature/auth  (+3/-0)
+|   |   `-- feature/tests  * HEAD  (+2/-0)
+|   `-- fix/login  + merged
+`-- develop
+    `-- feature/dashboard  (+5/-2)
+
+Orphaned Branches:
+`-- old-experiment  ! orphaned
+
+Legend: * current branch  + merged  (+ahead/-behind)  ! orphaned
+Relationships stored in .git/gx/stack.json
+```
+
+## Indicators
+
+| Indicator | Meaning |
+|-----------|---------|
+| `* HEAD` | The currently checked-out branch |
+| `+ merged` | Branch is fully merged into its parent |
+| `(+N/-M)` | N commits ahead, M commits behind the parent |
+| `! orphaned` | Branch whose parent no longer exists |
+
+## Tree Structure
+
+- **Roots** are branches that are not children of any other branch (typically main/master, plus any branches not in the stack config that have children)
+- **Children** are indented under their parent with tree-drawing characters (`\|--` and `` `-- ``)
+- The main branch is always listed first among roots
+- Children within each parent are sorted alphabetically
+
+## Self-Healing
+
+`gx graph` automatically repairs the stack config when it runs:
+
+1. **Stale entries**: Branches that no longer exist locally are removed from the config
+2. **Missing parents**: Branches not in the config are analyzed to detect their most likely parent using merge-base distance. If a parent is found, the relationship is saved automatically
+
+This means `gx graph` works even if you create branches with plain `git checkout -b` instead of `gx stack` -- it will detect and record the relationships.
+
+## Orphaned Branches
+
+Branches whose recorded parent no longer exists are shown in a separate "Orphaned Branches" section with a warning indicator. These can be cleaned up with `gx nuke --orphans`.
+
+<Tip>
+Run `gx graph` after creating branches or resolving merges to verify the stack looks correct. The self-healing will fix most inconsistencies automatically.
+</Tip>
+
+<Accordion title="Details">
+- The tree is built from `.git/gx/stack.json` combined with all local branches
+- Ahead/behind counts are computed for each branch relative to its configured parent
+- Merged status is checked with `git branch --merged <parent>`
+- Branches with no children and no config entry (that are not the main branch) are classified as orphaned
+- The config is saved after self-healing, so future runs are faster
+</Accordion>

@@ -1,0 +1,90 @@
+---
+title: "recap"
+description: "Show what you (or someone else) did recently"
+---
+
+`gx recap` shows recent commit activity, grouped by date. By default it shows your own commits from the last day -- useful for standups, end-of-day reviews, or catching up after time away.
+
+## Usage
+
+```bash
+gx recap [@author] [flags]
+```
+
+## Arguments
+
+| Argument | Description |
+|----------|-------------|
+| `@author` | Show commits by a specific author (matches git author name). The `@` prefix is optional. |
+
+## Flags
+
+| Flag | Short | Description |
+|------|-------|-------------|
+| `--days` | `-d` | Number of days to look back (default: 1) |
+| `--all` | | Show all contributors, grouped by author |
+| `--limit` | | Max commits to display (default: 100) |
+
+## Examples
+
+<CodeGroup>
+```bash Your activity today
+$ gx recap
+
+Your activity in the last 1 day (my-project):
+
+  Today:
+    a1b2c3d  14:30  fix auth redirect
+    b2c3d4e  11:15  add login page tests
+    c3d4e5f  10:00  refactor auth module
+
+  3 commits
+```
+
+```bash Someone else's activity
+$ gx recap @Bob -d 7
+
+Bob's activity in the last 7 days (my-project):
+
+  Today:
+    d4e5f6g  16:00  update dashboard layout
+
+  Yesterday:
+    e5f6g7h  11:30  fix API response format
+    f6g7h8i  09:45  add rate limiting
+
+  Apr 10:
+    g7h8i9j  14:00  initial API setup
+
+  4 commits
+```
+
+```bash Team activity
+$ gx recap --all -d 3
+
+Team activity in the last 3 days (my-project):
+
+  You (3 commits):
+    a1b2c3d  14:30  fix auth redirect
+    b2c3d4e  11:15  add login page tests
+    c3d4e5f  10:00  refactor auth module
+
+  Bob (2 commits):
+    d4e5f6g  16:00  update dashboard layout
+    e5f6g7h  11:30  fix API response format
+
+  5 commits from 2 contributors
+```
+</CodeGroup>
+
+<Info>
+In `--all` mode, your own name is highlighted as "You" in the output. Other authors are listed by their git author name.
+</Info>
+
+<Accordion title="Details">
+- Defaults to your `git config user.name` when no author is specified
+- If your git user name is not set, gx prints `ERROR Cannot determine your git user. Set git config user.name or specify an author.`
+- Uses `--all` flag on `git log` to search across all branches
+- Date grouping shows "Today", "Yesterday", or the date (e.g., "Apr 10") for older entries
+- The repo name shown in the header is derived from the repo root directory name
+</Accordion>

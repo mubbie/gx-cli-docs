@@ -1,0 +1,68 @@
+---
+title: "init"
+description: "Initialize gx stacking for this repo"
+---
+
+`gx init` creates the `.git/gx/stack.json` configuration file that tracks branch relationships for stacking. This is optional -- most stacking commands auto-initialize when needed.
+
+## Usage
+
+```bash
+gx init [flags]
+```
+
+## Flags
+
+| Flag | Description |
+|------|-------------|
+| `--trunk` | Explicitly set the trunk branch (default: auto-detected HEAD branch) |
+| `--force` | Re-initialize, updating the trunk branch while preserving existing branch relationships |
+
+## Example
+
+```bash
+$ gx init
+
+OK Initialized gx in this repo.
+  Trunk: main
+  Stack config: .git/gx/stack.json
+
+  Get started:
+    gx stack feature/my-thing main    Create your first stacked branch
+    gx graph                          View your stack
+```
+
+## Re-initialize
+
+Use `--force` to change the trunk branch without losing tracked relationships:
+
+```bash
+$ gx init --force --trunk develop
+
+WARN Re-initializing gx. Existing branch relationships will be preserved.
+
+OK Re-initialized gx with trunk branch: develop
+```
+
+## Auto-initialization
+
+You do not need to run `gx init` before using stacking commands. When you run `gx stack` for the first time, gx auto-creates the config with the detected HEAD branch as trunk.
+
+Running `gx init` when already initialized shows the current state:
+
+```
+> gx is already initialized.
+  Trunk: main
+  Tracked branches: 5
+  Config: .git/gx/stack.json
+
+  Run with --force to re-initialize.
+```
+
+<Tip>
+Use `--trunk` if your repo uses a non-standard default branch name (e.g., `develop`, `production`) that git does not report as the HEAD branch.
+</Tip>
+
+<Accordion title="Config location">
+The stack config is stored at `.git/gx/stack.json` inside the repo's git directory. It is not tracked by git and does not appear in your working tree. This means it is local to each clone -- collaborators each have their own stack config.
+</Accordion>

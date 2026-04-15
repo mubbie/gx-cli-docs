@@ -1,0 +1,76 @@
+---
+title: "conflicts"
+description: "Preview merge conflicts before merging, without touching the working tree"
+---
+
+`gx conflicts` uses `git merge-tree` to predict merge conflicts without actually performing a merge. Your working tree and index are never modified -- this is a completely read-only operation.
+
+## Usage
+
+```bash
+gx conflicts [target] [flags]
+```
+
+## Arguments
+
+| Argument | Description |
+|----------|-------------|
+| `target` | Branch to check conflicts against (default: HEAD branch) |
+
+## Flags
+
+| Flag | Description |
+|------|-------------|
+| `--dry-run` | Always read-only (supported for consistency; the command is already read-only) |
+
+## Example Output
+
+<CodeGroup>
+```bash No conflicts
+$ gx conflicts
+
+Checking feature/auth against main...
+
+OK No conflicts. Clean merge.
+  8 files changed, 245 insertions(+), 32 deletions(-)
+```
+
+```bash Conflicts found
+$ gx conflicts
+
+Checking feature/auth against main...
+
+X 2 conflicts found
+
+  src/auth.go     (Alice + Bob)
+  src/config.go
+
+  6 other files merge cleanly
+```
+</CodeGroup>
+
+When conflicts are found, gx shows:
+- The conflicting file paths
+- The authors who last touched each side (when they differ), helping you know who to coordinate with
+- How many other files would merge cleanly
+
+## Git Version Compatibility
+
+gx uses the modern `git merge-tree --write-tree` form (available in Git 2.38+). If that is not available, it automatically falls back to the legacy 3-argument form:
+
+```
+git merge-tree <merge-base> HEAD <target>
+```
+
+Both approaches produce the same result. The fallback happens transparently.
+
+<Tip>
+Run `gx conflicts` before starting a merge or rebase to know what you are getting into. It is especially useful before `gx sync` on a large stack.
+</Tip>
+
+<Accordion title="Edge cases">
+- If you are already on the target branch, gx prints `> You're already on <target>. Switch to a feature branch to check conflicts.`
+- If the target branch does not exist, gx prints an error
+- The author attribution shows who last touched each conflicting file on each side, which helps identify who to coordinate with for resolution
+- The "other files merge cleanly" count is derived from `git diff --stat` between the merge base and target
+</Accordion>

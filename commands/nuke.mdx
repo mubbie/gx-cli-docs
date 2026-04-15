@@ -1,0 +1,105 @@
+---
+title: "nuke"
+description: "Delete branches with confidence. Removes local, remote, and tracking refs."
+---
+
+`gx nuke` deletes branches thoroughly: local branch, remote tracking ref, and remote branch in one operation. It supports glob patterns for batch deletion and has safety guards to prevent accidents.
+
+## Usage
+
+```bash
+gx nuke <branch-or-pattern> [flags]
+gx nuke --orphans [flags]
+```
+
+## Arguments
+
+| Argument | Description |
+|----------|-------------|
+| `branch-or-pattern` | Branch name or glob pattern (e.g., `feature/*`) |
+
+## Flags
+
+| Flag | Short | Description |
+|------|-------|-------------|
+| `--local` | | Only delete the local branch (skip remote) |
+| `--dry-run` | | Show what would be deleted without making changes |
+| `--yes` | `-y` | Skip confirmation prompts |
+| `--orphans` | | Delete all orphaned branches from the stack |
+
+## Examples
+
+<CodeGroup>
+```bash Delete a single branch
+$ gx nuke feature/old-auth
+
+  feature/old-auth is NOT merged into main.
+
+Proceed with deletion? [y/N] y
+OK Deleted local branch feature/old-auth
+OK Deleted remote tracking ref origin/feature/old-auth
+OK Deleted remote branch origin/feature/old-auth
+```
+
+```bash Glob pattern
+$ gx nuke "feature/experiment-*" --dry-run
+
+DRY RUN. No changes will be made
+
+  feature/experiment-1  Local: true  Remote: true  Merged: false
+  feature/experiment-2  Local: true  Remote: false Merged: true
+
+  Would delete: 2 branches
+```
+
+```bash Delete orphaned branches
+$ gx nuke --orphans
+
+Orphaned branches:
+  old-experiment
+  temp-fix
+
+Delete 2 orphaned branches? [y/N] y
+OK Deleted old-experiment
+OK Deleted temp-fix
+```
+
+```bash Local only
+$ gx nuke feature/done --local
+```
+</CodeGroup>
+
+## Safety Guards
+
+gx nuke includes several safety measures:
+
+| Guard | Behavior |
+|-------|----------|
+| **Current branch** | Cannot nuke the branch you are on. gx prints `ERROR Cannot nuke '<branch>': it's the current branch. Switch first.` |
+| **HEAD branch** | Cannot nuke main/master. gx prints `ERROR Cannot nuke '<branch>': it's the HEAD branch. Blocked for safety.` |
+| **Unmerged warning** | Branches not merged into the HEAD branch are flagged with a prominent warning |
+| **Stack children** | If the branch has dependent branches in the stack, gx warns they will become orphaned |
+| **Confirmation** | Always asks for confirmation (unless `--yes`), and always asks when unmerged branches are involved even with `--yes` |
+
+<Warning>
+Deleting a branch that has children in the stack will orphan those children. They will appear in `gx graph` with the `! orphaned` indicator. Use `gx nuke --orphans` later to clean them up, or use `gx retarget` to reparent them first.
+</Warning>
+
+## Merged vs Unmerged
+
+- **Merged branches** are deleted with `git branch -d` (safe delete)
+- **Unmerged branches** are deleted with `git branch -D` (force delete)
+
+The merge status is checked against the HEAD branch using `git branch --merged`.
+
+## Orphan Mode
+
+`gx nuke --orphans` finds all branches in the stack config whose parent no longer exists and offers to delete them in batch. This is useful after merging and deleting parent branches.
+
+<Accordion title="Details">
+- Glob patterns are resolved against all local branches
+- Remote deletion uses `git push origin --delete <branch>`
+- Remote tracking refs are cleaned up with `git branch -dr origin/<branch>`
+- After deletion, the branch is removed from the stack config
+- When a branch is removed from the config, its children are also removed (they become orphaned)
+</Accordion>

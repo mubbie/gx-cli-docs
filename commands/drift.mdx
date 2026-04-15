@@ -1,0 +1,67 @@
+---
+title: "drift"
+description: "Show how far your branch has diverged from the HEAD branch"
+---
+
+`gx drift` shows exactly how many commits your branch is ahead and behind a target branch, with a list of the divergent commits and a file stat summary.
+
+## Usage
+
+```bash
+gx drift [target] [flags]
+```
+
+## Arguments
+
+| Argument | Description |
+|----------|-------------|
+| `target` | Branch to compare against (default: HEAD branch, i.e., main/master) |
+
+## Flags
+
+| Flag | Short | Description |
+|------|-------|-------------|
+| `--full` | | Show all commits without truncation |
+| `--parent` | `-p` | Compare against the stack parent instead of the HEAD branch |
+
+## Example Output
+
+```
+feature/auth is 3 ahead, 12 behind main
+
+Commits on your branch (not on main):
+  a1b2c3d  5 min ago    add OAuth provider
+  b2c3d4e  2 hours ago  add auth middleware
+  c3d4e5f  3 hours ago  scaffold auth module
+
+Commits on main (not on your branch):
+  d4e5f6g  1 hour ago   update CI pipeline
+  e5f6g7h  2 hours ago  fix dashboard layout
+  ...
+  (and 10 more, use --full to see all)
+
+Files diverged: 8 files changed, 245 insertions(+), 32 deletions(-)
+```
+
+## Using with Stacked Branches
+
+The `--parent` flag compares against the stack parent instead of main. This is useful when working with stacked PRs where you want to see drift relative to the parent branch, not trunk:
+
+```bash
+# Compare against stack parent
+$ gx drift -p
+
+feature/tests is 2 ahead, 0 behind feature/auth
+```
+
+<Info>
+You cannot use `--parent` and an explicit target branch at the same time. gx will print an error if you try.
+</Info>
+
+<Accordion title="Details">
+- Commits are truncated to 20 per section by default. Use `--full` to see all
+- If there is no divergence, gx prints `OK No divergence. Your branch is based on the latest <target>.`
+- If you are already on the target branch, gx prints `> You're on <target>. Switch to a feature branch to see drift.`
+- The "Files diverged" line shows the total stat summary from the merge base to HEAD
+- If the branch has no common ancestor with the target, gx prints an error
+</Accordion>

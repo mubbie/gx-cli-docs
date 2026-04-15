@@ -1,0 +1,53 @@
+---
+title: "Installation"
+description: "How to install gx"
+---
+
+## Homebrew (recommended)
+
+The fastest way to install on macOS or Linux:
+
+```bash
+brew tap mubbie/tap
+brew install gx-git
+```
+
+Update:
+
+```bash
+brew upgrade gx-git
+```
+
+## Go
+
+If you have Go installed:
+
+```bash
+go install github.com/mubbie/gx-cli@latest
+```
+
+## pip / pipx
+
+Python 3.9+ (the Python version of gx):
+
+```bash
+pipx install gx-git
+```
+
+## Binary Download
+
+Download pre-built binaries from [GitHub Releases](https://github.com/mubbie/gx-cli/releases).
+
+Available for:
+- macOS (ARM, Intel)
+- Linux (x64, ARM)
+- Windows (x64, ARM)
+
+Add the binary to your `PATH` after downloading.
+
+## Verify
+
+```bash
+gx --version
+gx
+```

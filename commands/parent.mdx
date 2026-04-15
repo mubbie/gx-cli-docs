@@ -1,0 +1,70 @@
+---
+title: "parent"
+description: "Print the parent branch name (for scripting)"
+---
+
+`gx parent` prints the parent branch of the current branch and exits. It is designed for use in shell scripts and pipelines -- it outputs only the branch name with no decoration.
+
+## Usage
+
+```bash
+gx parent
+```
+
+## Behavior
+
+- If the current branch is in the stack, prints the stack parent
+- If the current branch is not in the stack, prints the HEAD branch (main/master)
+- If you are on trunk, exits with code 1 (no output)
+- If not in a git repo, exits with code 1 (no output)
+
+## Examples
+
+```bash
+$ gx parent
+feature/auth
+```
+
+## Composability
+
+`gx parent` is designed for shell pipelines and scripting:
+
+<CodeGroup>
+```bash Diff against parent
+$ git diff $(gx parent)...HEAD
+```
+
+```bash Log commits since parent
+$ git log --oneline $(gx parent)..HEAD
+```
+
+```bash Rebase onto parent
+$ git rebase $(gx parent)
+```
+
+```bash Check if branch is ahead of parent
+$ git rev-list --count $(gx parent)..HEAD
+```
+
+```bash Use in CI scripts
+#!/bin/bash
+PARENT=$(gx parent)
+if [ $? -ne 0 ]; then
+  echo "Not on a feature branch"
+  exit 0
+fi
+echo "Running checks against $PARENT"
+git diff --name-only "$PARENT"...HEAD | xargs lint
+```
+</CodeGroup>
+
+<Info>
+`gx parent` uses exit codes for scripting: exit 0 means a parent was found and printed, exit 1 means no parent (on trunk, detached HEAD, or not in a repo). It never prints error messages to stdout.
+</Info>
+
+<Accordion title="Details">
+- Output is a single line with just the branch name, no color codes or prefix
+- When the branch is in the stack config, the recorded parent is used
+- When the branch is not in the stack, the HEAD branch is returned as a sensible default
+- On trunk, there is no parent, so the command exits with code 1 and no output
+</Accordion>

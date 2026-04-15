@@ -1,0 +1,134 @@
+---
+title: "undo / redo"
+description: "Smart undo. Detects the last git action and reverses it."
+---
+
+`gx undo` inspects your repo state and automatically determines the right undo operation. It detects merges, rebases, staged files, amended commits, merge commits, and regular commits -- then offers to reverse whichever it finds first.
+
+`gx redo` reverses the last undo, restoring your repo to its previous state.
+
+## Usage
+
+```bash
+gx undo [flags]
+gx redo
+```
+
+## Flags
+
+| Flag | Description |
+|------|-------------|
+| `--dry-run` | Show what would be undone without making changes |
+| `--history` | Show the undo/redo history log |
+
+## Detection Priority
+
+gx undo checks conditions in this order and acts on the first match:
+
+| Priority | Condition | Undo Action | Effect |
+|----------|-----------|-------------|--------|
+| 1 | Merge conflict in progress | `git merge --abort` | Returns to pre-merge state |
+| 2 | Rebase in progress | `git rebase --abort` | Returns to pre-rebase state |
+| 3 | Staged files present | `git reset HEAD` | Unstages all files, changes stay in working tree |
+| 4 | Last reflog entry is amend | `git reset --soft HEAD@{1}` | Restores pre-amend state, changes preserved |
+| 5 | Last reflog entry is merge commit | `git reset --hard HEAD~1` | Removes the merge commit (hard reset) |
+| 6 | Last reflog entry is commit | `git reset --soft HEAD~1` | Soft reset, changes move back to staging |
+
+## Examples
+
+<CodeGroup>
+```bash Dry run
+$ gx undo --dry-run
+
+Detected: commit "add login page" (a1b2c3d, 5 minutes ago)
+
+  Action:  Soft reset to previous commit. Your changes will be preserved in staging.
+  Command: git reset --soft HEAD~1
+
+DRY RUN. No changes will be made
+
+  Would run: git reset --soft HEAD~1
+  Result:    Soft reset to previous commit. Your changes will be preserved in staging.
+```
+
+```bash Undo a commit
+$ gx undo
+
+Detected: commit "add login page" (a1b2c3d, 5 minutes ago)
+
+  Action:  Soft reset to previous commit. Your changes will be preserved in staging.
+  Command: git reset --soft HEAD~1
+
+Proceed with undo? [y/N] y
+
+OK Undone. Your changes from that commit are now staged.
+> Run `gx redo` to reverse this.
+```
+
+```bash Undo staged files
+$ gx undo
+
+Detected: 3 staged files
+
+  Action:  Unstage all files. Changes stay in your working tree.
+  Command: git reset HEAD
+
+Proceed with undo? [y/N] y
+
+OK Unstaged files. Your changes are preserved in the working tree.
+```
+
+```bash Abort a merge
+$ gx undo
+
+Detected: merge conflict in progress
+
+  Action:  Abort the merge. Returns to pre-merge state.
+  Command: git merge --abort
+
+Proceed with undo? [y/N] y
+
+OK Merge aborted. Working tree restored to pre-merge state.
+```
+</CodeGroup>
+
+## Undo History
+
+Every undo is recorded in `.git/gx/undo_history.json`. View recent history:
+
+```bash
+$ gx undo --history
+
+Undo/Redo History (last 10):
+
+ #  Time           Action          Description                Status
+ 1  5 minutes ago  commit          Undo commit "add login"    active
+ 2  2 hours ago    stage           Undo 3 staged files        redone
+```
+
+The history stores pre- and post-state refs, which enables `gx redo` to safely restore the previous state.
+
+## Redo
+
+`gx redo` reverses the most recent undo. It checks that the repo state has not changed since the undo was performed -- if HEAD has moved, redo is blocked with an explanation.
+
+```bash
+$ gx redo
+
+Redoing: Undo commit "add login page"
+
+Proceed with redo? [y/N] y
+
+OK Redone.
+```
+
+<Warning>
+Redo performs a `git reset --hard` to the pre-undo ref. Make sure you don't have uncommitted work you want to keep.
+</Warning>
+
+<Accordion title="Edge cases">
+- If nothing is detected, gx prints `> Nothing to undo.`
+- History is capped at 50 entries and stored per-repo in `.git/gx/undo_history.json`
+- Redo checks that HEAD matches the post-undo ref. If you made commits after undoing, redo will refuse with an explanation
+- Merge commit undo uses `--hard` reset, which discards changes. Other undo types use `--soft` reset
+</Accordion>

@@ -1,0 +1,101 @@
+---
+title: "handoff"
+description: "Generate a branch summary for PRs, Slack, or standups"
+---
+
+`gx handoff` generates a formatted summary of your branch: commits, file changes, and stats. Useful for PR descriptions, Slack updates, or standup notes.
+
+## Usage
+
+```bash
+gx handoff [flags]
+```
+
+## Flags
+
+| Flag | Short | Description |
+|------|-------|-------------|
+| `--against` | | Compare against a specific branch (overrides auto-detection) |
+| `--copy` | `-c` | Copy the output to the system clipboard |
+| `--markdown` | | Output in markdown format |
+| `--md` | | Alias for `--markdown` |
+
+## Auto Base Detection
+
+gx automatically determines the base branch to compare against:
+
+1. If `--against` is specified, use that branch
+2. If the current branch is in the stack, use the **stack parent**
+3. Otherwise, use the **HEAD branch** (main/master)
+
+## Output Formats
+
+### Plain (default)
+
+```
+feature/auth (vs main)
+
+Commits (3):
+  a1b2c3d  add OAuth provider
+  b2c3d4e  add auth middleware
+  c3d4e5f  scaffold auth module
+
+ 3 files changed, 245 insertions(+), 32 deletions(-)
+
+Files:
+  src/auth.go
+  src/middleware.go
+  src/config.go
+```
+
+For stacked branches, the header shows the relationship:
+
+```
+feature/tests (on feature/auth)
+```
+
+### Markdown (`--markdown` or `--md`)
+
+```markdown
+## feature/auth
+**Base:** main . **3 commits** . 3 files changed, 245 insertions(+), 32 deletions(-)
+
+### Commits
+- `a1b2c3d` add OAuth provider
+- `b2c3d4e` add auth middleware
+- `c3d4e5f` scaffold auth module
+
+### Files Changed
+- `src/auth.go`
+- `src/middleware.go`
+- `src/config.go`
+```
+
+## Examples
+
+<CodeGroup>
+```bash Copy markdown to clipboard
+$ gx handoff --md --copy
+
+## feature/auth
+**Base:** main . **3 commits** . 3 files changed, 245 insertions(+), 32 deletions(-)
+...
+
+OK Copied to clipboard.
+```
+
+```bash Compare against specific branch
+$ gx handoff --against develop
+```
+</CodeGroup>
+
+<Tip>
+Combine `--markdown` and `--copy` to generate a PR description and paste it directly into GitHub.
+</Tip>
+
+<Accordion title="Details">
+- If the clipboard copy fails (e.g., no clipboard utility available), gx prints `WARN Could not copy to clipboard.` but still shows the output
+- If there are no changes between the branches, gx prints `> No changes between <current> and <base>.`
+- File stats are computed using `git diff --stat` with the triple-dot syntax (merge base)
+- The markdown format is designed to paste cleanly into GitHub PR descriptions
+</Accordion>

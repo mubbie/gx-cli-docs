@@ -1,0 +1,73 @@
+---
+title: "context"
+description: "Repo status at a glance"
+---
+
+`gx context` (alias `gx ctx`) shows a compact summary of your current repo state: branch, tracking status, last commit, working tree, stash count, and any active operations.
+
+## Usage
+
+```bash
+gx context
+gx ctx
+```
+
+## What It Shows
+
+| Section | Details |
+|---------|---------|
+| **Branch** | Current branch name, or detached HEAD indicator |
+| **Tracking** | Remote tracking branch with ahead/behind counts |
+| **vs main** | Ahead/behind relative to the HEAD branch (main/master) |
+| **Last commit** | Short hash, message, and age |
+| **Working tree** | Modified, staged, and untracked file counts, or "clean" |
+| **Stash** | Number of stash entries, or "empty" |
+| **Active ops** | Warnings for merge, rebase, or cherry-pick in progress |
+
+## Example Output
+
+```
+Branch:      feature/auth
+Tracking:    origin/feature/auth (2 ahead, 1 behind)
+vs main:     5 ahead, 12 behind
+
+Last commit: a1b2c3d "add OAuth provider" (5 minutes ago)
+
+Working tree:
+  Modified:  2 files
+  Staged:    1 file
+  Untracked: 3 files
+
+Stash:  2 entries
+```
+
+<Info>
+When in detached HEAD state, gx shows the short hash instead of a branch name and prints `WARN You are in detached HEAD state.`
+</Info>
+
+## Active Operation Warnings
+
+If a merge, rebase, or cherry-pick is in progress, gx shows a warning at the bottom:
+
+```
+WARN Merge in progress
+```
+
+```
+WARN Rebase in progress
+```
+
+```
+WARN Cherry-pick in progress
+```
+
+<Tip>
+`gx context` is a read-only command. It never modifies your repo. Run it as often as you want to get your bearings.
+</Tip>
+
+<Accordion title="Details">
+- Tracking status is shown only if the branch has an upstream configured
+- The "vs main" line is hidden when you are already on the HEAD branch
+- Stash count shows "empty" when there are no stash entries
+- Working tree shows "clean" (in green) when there are no modifications
+</Accordion>

@@ -1,0 +1,50 @@
+---
+title: "update"
+description: "Update gx to the latest version"
+---
+
+`gx update` detects how gx was installed and runs the appropriate update command.
+
+## Usage
+
+```bash
+gx update
+```
+
+## Behavior
+
+gx detects the installation method by inspecting the binary's path:
+
+### Homebrew (auto-detected)
+
+If the binary is inside a Homebrew Cellar or Linuxbrew path, gx runs `brew upgrade gx-git` directly:
+
+```bash
+$ gx update
+Current version: 2.0.1
+Installed via Homebrew. Updating...
+
+...brew output...
+
+OK Updated via Homebrew. Run `gx --version` to verify.
+```
+
+### Other install methods
+
+If gx cannot detect Homebrew, it shows manual instructions:
+
+```
+Current version: 2.0.1
+> To update, reinstall via your package manager:
+  Homebrew: brew upgrade gx-git
+  pipx:    pipx upgrade gx-git
+  go:      go install github.com/mubbie/gx-cli@latest
+```
+
+## Homebrew Detection
+
+gx resolves symlinks on the binary path and checks if it contains `cellar`, `homebrew`, or `linuxbrew` (case-insensitive). This covers standard Homebrew installations on both macOS and Linux.
+
+<Tip>
+If you installed via `go install`, updating is as simple as running the install command again: `go install github.com/mubbie/gx-cli@latest`
+</Tip>

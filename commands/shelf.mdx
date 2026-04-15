@@ -1,0 +1,120 @@
+---
+title: "shelf"
+description: "Named stash manager with interactive picker"
+---
+
+`gx shelf` is a friendlier interface for git stash. It lets you push stashes with descriptive names, browse them interactively with file stats, and apply/pop/drop with a simple number+action interface.
+
+## Usage
+
+```bash
+gx shelf              # Interactive picker
+gx shelf push [msg]   # Stash with a message
+gx shelf list         # Non-interactive list
+gx shelf clear        # Drop all stashes
+```
+
+## Subcommands
+
+### `gx shelf` (interactive)
+
+Opens an interactive stash browser showing each entry with its index, age, message, originating branch, and file change stats:
+
+```
+3 stashes:
+
+   0  5 minutes ago    gx-shelf: feature/auth 2025-04-15 10:30
+                        feature/auth  3 files +45 -12
+
+   1  2 hours ago      working on dashboard
+                        feature/dashboard  1 file +10 -3
+
+   2  3 days ago       WIP on main: initial setup
+                        main  5 files +120 -0
+
+  <n>a = apply  <n>p = pop (apply+drop)  <n>d = drop
+  text = filter  q = cancel
+```
+
+Actions use the stash **index number** followed by an action letter:
+
+| Input | Action |
+|-------|--------|
+| `0a` or `0` | Apply stash 0 (keep the stash) |
+| `0p` | Pop stash 0 (apply and drop) |
+| `0d` | Drop stash 0 (discard) |
+| text | Filter stashes by message or branch name |
+| `q` or Enter | Cancel |
+
+<Tip>
+Entering just a number (e.g., `0`) defaults to **apply**. You only need the action letter for pop or drop.
+</Tip>
+
+### `gx shelf push [message]`
+
+Stash your current changes with a descriptive message:
+
+```bash
+$ gx shelf push "working on auth flow"
+OK Stashed working directory: "working on auth flow"
+  Run `gx shelf` to browse.
+```
+
+If no message is provided, gx generates one with the branch name and timestamp:
+
+```bash
+$ gx shelf push
+OK Stashed working directory: "gx-shelf: feature/auth 2025-04-15 10:30"
+```
+
+| Flag | Short | Description |
+|------|-------|-------------|
+| `--include-untracked` | `-u` | Also stash untracked files |
+
+### `gx shelf list`
+
+Non-interactive list of all stashes with their details:
+
+```bash
+$ gx shelf list
+
+3 stashes:
+
+   0  5 minutes ago    gx-shelf: feature/auth 2025-04-15 10:30
+                        feature/auth  3 files +45 -12
+   ...
+```
+
+### `gx shelf clear`
+
+Drop all stashes at once:
+
+```bash
+$ gx shelf clear
+
+This will permanently delete ALL 3 stashes:
+
+  stash@{0}  5 minutes ago  gx-shelf: feature/auth 2025-04-15 10:30
+  stash@{1}  2 hours ago    working on dashboard
+  stash@{2}  3 days ago     WIP on main: initial setup
+
+WARN This cannot be undone.
+Drop all stashes? [y/N] y
+OK All stashes cleared.
+```
+
+| Flag | Description |
+|------|-------------|
+| `--dry-run` | Show what would be dropped |
+
+<Warning>
+`gx shelf clear` permanently deletes all stashes. This cannot be undone. Use `--dry-run` to preview first.
+</Warning>
+
+<Accordion title="Edge cases">
+- If the working tree is clean, `gx shelf push` prints `> Nothing to stash. Working tree is clean.`
+- With `-u`, gx also checks for untracked files before saying "nothing to stash"
+- The interactive picker supports text filtering by message content or branch name (case-insensitive)
+- Drop requires a separate confirmation prompt (`Drop stash@{n}? [y/N]`)
+- File stats (insertions/deletions) are parsed from `git stash show --shortstat`
+</Accordion>
