@@ -53,9 +53,9 @@ When gx creates a stacked branch, it records the parent's HEAD SHA at that momen
 - `gx retarget` uses it as the `--onto` base when moving a branch to a new parent
 - It is updated automatically after each successful sync
 
-<Info>
+<Tip>
 If you have uncommitted changes when running `gx stack`, gx prints a warning: `WARN You have uncommitted changes. They will carry over to the new branch.` The branch is still created -- your changes come along.
-</Info>
+</Tip>
 
 <Accordion title="Edge cases">
 - If the new branch already exists, gx prints `ERROR Branch '<name>' already exists.`

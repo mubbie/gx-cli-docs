@@ -58,9 +58,9 @@ git diff --name-only "$PARENT"...HEAD | xargs lint
 ```
 </CodeGroup>
 
-<Info>
+<Tip>
 `gx parent` uses exit codes for scripting: exit 0 means a parent was found and printed, exit 1 means no parent (on trunk, detached HEAD, or not in a repo). It never prints error messages to stdout.
-</Info>
+</Tip>
 
 <Accordion title="Details">
 - Output is a single line with just the branch name, no color codes or prefix

@@ -109,9 +109,9 @@ All four navigation commands handle forks (branches with multiple children) grac
 - **`gx down`** and **`gx bottom`** always have a single path (each branch has exactly one parent)
 - Cycle detection prevents infinite loops from corrupted configs
 
-<Info>
+<Tip>
 All navigation commands warn if you have uncommitted changes: `WARN You have uncommitted changes. They may conflict with the target branch.`
-</Info>
+</Tip>
 
 <Accordion title="Details">
 - Navigation uses the stack config (`.git/gx/stack.json`) to determine parent/child relationships
