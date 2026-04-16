@@ -122,8 +122,9 @@ gx stores stack relationships in `.git/gx/stack.json`:
 
 - **Stored in `.git/gx/`**: Not tracked by git, local to each clone
 - **Auto-created**: First `gx stack` call creates it if missing
-- **Self-healing**: `gx graph` detects and repairs missing relationships
-- **Legacy migration**: Old `{"relationships": {"child": "parent"}}` format is auto-migrated
+- **Read-only tree building**: `BuildTree` reads `stack.json` but never writes to it. Only explicit commands (`gx stack`, `gx sync`, `gx retarget`) modify the config
+- **Explicit only**: Only branches explicitly created with `gx stack` appear in the graph. There is no auto-discovery of relationships
+- **`parent_head` for precise rebasing**: The `parent_head` field stores the parent's HEAD SHA at the time of the last sync, enabling precise `--onto` rebasing
 
 ## Related Commands
 

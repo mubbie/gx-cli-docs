@@ -88,6 +88,15 @@ $ gx sync main feature/auth feature/tests
 ```
 </CodeGroup>
 
+## Safety Guards
+
+`gx sync` blocks if the working tree is dirty (uncommitted changes). You must commit or stash your changes before syncing:
+
+```
+$ gx sync --stack
+ERROR Working tree is dirty. Commit or stash your changes before syncing.
+```
+
 ## Conflict Handling
 
 If a rebase conflict occurs, gx stops and shows:
@@ -115,10 +124,11 @@ After resolving conflicts and completing the rebase, you can re-run `gx sync` wi
 </Warning>
 
 <Accordion title="Details">
+- Sync blocks if the working tree is dirty (uncommitted changes)
 - The chain auto-detection walks up from the current branch to the root, then down through all descendants
 - At least 2 branches are needed (root + 1 child) for sync to run
 - If the stack has 5+ branches, gx asks for confirmation before proceeding
-- After a successful sync, `parent_head` values are updated for all synced branches
+- After a successful sync, `parent_head` values are batch-updated for all synced branches
 - The `--onto` fallback captures pre-rebase SHAs before starting, so each branch gets the correct old base even as branches are rebased in sequence
 - If `--update-refs` detects siblings in the stack, it falls back to `--onto` iteration with a message
 </Accordion>

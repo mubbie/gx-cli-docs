@@ -123,12 +123,14 @@ OK Redone.
 ```
 
 <Warning>
-Redo performs a `git reset --hard` to the pre-undo ref. Make sure you don't have uncommitted work you want to keep.
+Redo performs a `git reset --hard` to the pre-undo ref. It will block if the working tree is dirty (uncommitted changes) to prevent accidental data loss.
 </Warning>
 
 <Accordion title="Edge cases">
 - If nothing is detected, gx prints `> Nothing to undo.`
 - History is capped at 50 entries and stored per-repo in `.git/gx/undo_history.json`
 - Redo checks that HEAD matches the post-undo ref. If you made commits after undoing, redo will refuse with an explanation
+- Redo blocks if the working tree is dirty to prevent data loss from `git reset --hard`
+- Reflog detection skips non-matching entries instead of stopping at the first mismatch, improving detection accuracy
 - Merge commit undo uses `--hard` reset, which discards changes. Other undo types use `--soft` reset
 </Accordion>

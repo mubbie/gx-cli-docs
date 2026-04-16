@@ -91,6 +91,15 @@ gh pr edit <branch> --base <new-target>
 
 If this succeeds, you see `OK PR for <branch> automatically retargeted to <new-target>`. If it fails (no PR exists, or gh is not available), gx prints a reminder: `WARN Remember to retarget the PR for <branch> to <new-target>.`
 
+## Safety Guards
+
+`gx retarget` blocks if the working tree is dirty (uncommitted changes). You must commit or stash your changes before retargeting:
+
+```
+$ gx retarget develop
+ERROR Working tree is dirty. Commit or stash your changes before retargeting.
+```
+
 ## Conflict Handling
 
 If a rebase conflict occurs during retargeting:

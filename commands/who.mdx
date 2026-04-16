@@ -3,7 +3,7 @@ title: "who"
 description: "Show who knows a file, directory, or repo best"
 ---
 
-`gx who` identifies the top contributors to your repo by commit count, with smart deduplication to merge multiple git identities belonging to the same person.
+`gx who` identifies the top contributors to your repo, file, or directory. The output format varies depending on whether you pass a file, directory, or nothing.
 
 ## Usage
 
@@ -16,38 +16,54 @@ gx who [path] [flags]
 | Flag | Short | Default | Description |
 |------|-------|---------|-------------|
 | `--number` | `-n` | 5 | Number of contributors to show |
-| `--since` | | | Only consider commits after this date (e.g., `6months`, `2024-01-01`) |
 | `--no-limit` | | false | Remove file cap for directory analysis |
 
-## Example
+## Modes
+
+### Repo-level: `gx who`
+
+When run with no arguments, shows contributors by commit count using `git shortlog -sne HEAD`:
 
 ```
 $ gx who
 
-Top contributors
-
- #  Author          Email                                       Commits  Last Active
- ─────────────────────────────────────────────────────────────────────────────────────
- 1  Sarah Chen      sarahchen@users.noreply.github..             953      1 month ago
- 2  James Wilson    james.w@example.com                         138      7 months ago
- 3  You             you@users.noreply.gith...                   53       28 months ago
- 4  Alex Kim        alex.kim@example.com                        45       31 months ago
- 5  Maria Lopez     maria.l@example.com                         19       31 months ago
-
-You: Your Name <you@users.noreply.github.com>
+ #  Author          Commits  Email
+ 1  Sarah Chen          953  sarahchen@users.noreply.github.com
+ 2  James Wilson        138  james.w@example.com
+ 3  Alex Kim             45  alex.kim@example.com
+ 4  Maria Lopez          19  maria.l@example.com
+ 5  Pat Taylor           12  pat.t@example.com
 ```
 
-The "You" row is highlighted in green and matched by your `git config user.email`. The footer shows your exact git credentials for reference.
+### File-level: `gx who <file>`
 
-## Identity Deduplication
+When given a file path, shows blame-based line ownership:
 
-Git users often have multiple identities (personal email, work email, GitHub noreply address). gx merges these using a union-find algorithm that links identities sharing any of:
+```
+$ gx who src/auth.go
 
-- **Email address**: exact match (case-insensitive)
-- **Email username**: the part before `@` (e.g., `kim` from `kim@example.com` and `kim@work.com`)
-- **Author name**: case-insensitive match
+ #  Author          Lines    %  Email                             Last Edit
+ 1  Sarah Chen        120  54%  sarahchen@users.noreply.github..  2 weeks ago
+ 2  James Wilson       68  31%  james.w@example.com               1 month ago
+ 3  Alex Kim           34  15%  alex.kim@example.com              3 months ago
+```
 
-This means a contributor who has committed as `Kim <kim@example.com>` and `Kim <kim@work.com>` appears as a single entry with both emails listed. The longest name is kept as the display name (usually the real full name).
+### Directory-level: `gx who <dir>`
+
+When given a directory, runs concurrent blame across all files (8 workers, capped at 200 files by default):
+
+```
+$ gx who src/
+
+ #  Author          Lines    %  Files  Email                             
+ 1  Sarah Chen       1420  48%     12  sarahchen@users.noreply.github..
+ 2  James Wilson      830  28%      8  james.w@example.com
+ 3  Alex Kim          450  15%      6  alex.kim@example.com
+ 4  Maria Lopez       180   6%      3  maria.l@example.com
+ 5  Pat Taylor         90   3%      2  pat.t@example.com
+```
+
+Use `--no-limit` to remove the 200-file cap for large directories.
 
 ## More Examples
 
@@ -57,24 +73,15 @@ Show the top 10 contributors:
 gx who -n 10
 ```
 
-Only count contributions from the last 6 months:
+Analyze a specific directory with no file cap:
 
 ```bash
-gx who --since 6months
-```
-
-Only count contributions since a specific date:
-
-```bash
-gx who --since 2024-01-01
+gx who src/ --no-limit
 ```
 
 <Accordion title="How it works under the hood">
-1. Runs `git shortlog -sne --all` to gather all contributors across all branches
-2. Parses each line into name, email, and commit count
-3. Applies union-find deduplication: any two entries sharing an email, email username (before @), or lowercase name get merged
-4. The merged entry keeps the longest name and sums all commit counts
-5. All unique emails are collected into the Email column
-6. "You" is detected by matching `git config user.email` against the email set
-7. Results are sorted by commit count descending
+1. **Repo mode** (`gx who`): Runs `git shortlog -sne HEAD` to gather contributors on the current branch
+2. **File mode** (`gx who <file>`): Runs `git blame` and aggregates lines per author, computing percentages and last edit timestamps
+3. **Directory mode** (`gx who <dir>`): Runs `git blame` concurrently across files (8 workers, capped at 200 files unless `--no-limit` is set), then aggregates lines, percentages, and file counts per author
+4. Results are sorted by commit count (repo mode) or line count (file/directory mode) descending
 </Accordion>
