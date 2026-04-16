@@ -28,13 +28,13 @@ Top contributors
 
  #  Author          Email                                       Commits  Last Active
  ─────────────────────────────────────────────────────────────────────────────────────
- 1  Joshua Etim     65484909+joshuaetim@users.noreply.github..  953      1 month ago
- 2  maro            marookegbero@gmail.com                      138      7 months ago
- 3  You             66747577+mubbie@users.noreply.gith...       53       28 months ago
- 4  Adisa-Shobi     s.oadisa.dev@gmail.com                      45       31 months ago
- 5  Nanu Oghenetega nanumichael27@gmail.com                     19       31 months ago
+ 1  Sarah Chen      sarahchen@users.noreply.github..             953      1 month ago
+ 2  James Wilson    james.w@example.com                         138      7 months ago
+ 3  You             you@users.noreply.gith...                   53       28 months ago
+ 4  Alex Kim        alex.kim@example.com                        45       31 months ago
+ 5  Maria Lopez     maria.l@example.com                         19       31 months ago
 
-You: Mubbie Idoko <66747577+mubbie@users.noreply.github.com>
+You: Your Name <you@users.noreply.github.com>
 ```
 
 The "You" row is highlighted in green and matched by your `git config user.email`. The footer shows your exact git credentials for reference.
@@ -44,10 +44,10 @@ The "You" row is highlighted in green and matched by your `git config user.email
 Git users often have multiple identities (personal email, work email, GitHub noreply address). gx merges these using a union-find algorithm that links identities sharing any of:
 
 - **Email address**: exact match (case-insensitive)
-- **Email username**: the part before `@` (e.g., `alice` from `alice@example.com` and `alice@work.com`)
+- **Email username**: the part before `@` (e.g., `kim` from `kim@example.com` and `kim@work.com`)
 - **Author name**: case-insensitive match
 
-This means a contributor who has committed as `Alice <alice@gmail.com>` and `Alice <alice@work.com>` appears as a single entry with both emails listed. The longest name is kept as the display name (usually the real full name).
+This means a contributor who has committed as `Kim <kim@example.com>` and `Kim <kim@work.com>` appears as a single entry with both emails listed. The longest name is kept as the display name (usually the real full name).
 
 ## More Examples
 
