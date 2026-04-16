@@ -1,7 +1,7 @@
 {
   "$schema": "https://mintlify.com/docs.json",
   "theme": "mint",
-  "name": "gx - Git Productivity Toolkit",
+  "name": "Git Productivity Toolkit",
   "colors": {
     "primary": "#06b6d4",
     "light": "#22d3ee",
