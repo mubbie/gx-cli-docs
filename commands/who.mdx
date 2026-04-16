@@ -11,11 +11,22 @@ description: "Show who knows a file, directory, or repo best"
 gx who [path] [flags]
 ```
 
+Examples:
+
+```bash
+gx who                          # Top contributors (commits)
+gx who src/auth.go              # Who owns this file (blame)
+gx who src/                     # Who owns this directory
+gx who --since 6months          # Only last 6 months
+gx who src/ --since 2024-01-01  # Directory, since date
+```
+
 ## Flags
 
 | Flag | Short | Default | Description |
 |------|-------|---------|-------------|
 | `--number` | `-n` | 5 | Number of contributors to show |
+| `--since` | | | Only consider contributions after this date (e.g., `6months`, `2024-01-01`, `yesterday`) |
 | `--no-limit` | | false | Remove file cap for directory analysis |
 
 ## Modes
