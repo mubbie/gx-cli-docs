@@ -59,9 +59,9 @@ Running `gx init` when already initialized shows the current state:
   Run with --force to re-initialize.
 ```
 
-<Tip>
+<Info>
 Use `--trunk` if your repo uses a non-standard default branch name (e.g., `develop`, `production`) that git does not report as the HEAD branch.
-</Tip>
+</Info>
 
 <Accordion title="Config location">
 The stack config is stored at `.git/gx/stack.json` inside the repo's git directory. It is not tracked by git and does not appear in your working tree. This means it is local to each clone -- collaborators each have their own stack config.

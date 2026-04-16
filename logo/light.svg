@@ -1,8 +1,8 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="200" height="80" viewBox="0 0 200 80">
-  <!-- Prompt chevron -->
-  <path d="M8 20 L24 40 L8 60" fill="none" stroke="#0891b2" stroke-width="5" stroke-linecap="round" stroke-linejoin="round" opacity="0.5"/>
-  <!-- gx text -->
-  <text x="40" y="58" font-family="'JetBrains Mono', 'SF Mono', 'Fira Code', monospace" font-size="52" font-weight="800" letter-spacing="-2">
-    <tspan fill="#0891b2">g</tspan><tspan fill="#1a1a20">x</tspan>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 58 32">
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@800&amp;display=swap');
+  </style>
+  <text x="0" y="26" font-family="'JetBrains Mono'" font-size="34" font-weight="800" letter-spacing="-2">
+    <tspan fill="#0891b2">g</tspan><tspan fill="#0f172a">x</tspan>
   </text>
 </svg>
