@@ -11,65 +11,70 @@ description: "Show who knows a file, directory, or repo best"
 gx who [path] [flags]
 ```
 
-## Arguments
-
-| Argument | Description |
-|----------|-------------|
-| `path` | File or directory to analyze (default: entire repo) |
-
 ## Flags
 
-| Flag | Short | Description |
-|------|-------|-------------|
-| `--number` | `-n` | Number of contributors to show (default: 5) |
-| `--since` | | Only consider commits after this date (e.g., `2024-01-01`) |
-| `--no-limit` | | Remove file cap for directory analysis |
+| Flag | Short | Default | Description |
+|------|-------|---------|-------------|
+| `--number` | `-n` | 5 | Number of contributors to show |
+| `--since` | | | Only consider commits after this date (e.g., `6months`, `2024-01-01`) |
+| `--no-limit` | | false | Remove file cap for directory analysis |
 
-## Example Output
+## Example
 
 ```
- #  Author    Email                    Commits  Last Active
- 1  You       alice@example.com        142      2 hours ago
- 2  Bob       bob@example.com          89       3 days ago
- 3  Charlie   charlie@co.com           45       1 week ago
- 4  Dana      dana@example.com         23       2 weeks ago
- 5  Eve       eve@co.com, eve@gh.com   12       1 month ago
+$ gx who
 
-You: Alice <alice@example.com>
+Top contributors
+
+ #  Author          Email                                       Commits  Last Active
+ ─────────────────────────────────────────────────────────────────────────────────────
+ 1  Joshua Etim     65484909+joshuaetim@users.noreply.github..  953      1 month ago
+ 2  maro            marookegbero@gmail.com                      138      7 months ago
+ 3  You             66747577+mubbie@users.noreply.gith...       53       28 months ago
+ 4  Adisa-Shobi     s.oadisa.dev@gmail.com                      45       31 months ago
+ 5  Nanu Oghenetega nanumichael27@gmail.com                     19       31 months ago
+
+You: Mubbie Idoko <66747577+mubbie@users.noreply.github.com>
 ```
+
+The "You" row is highlighted in green and matched by your `git config user.email`. The footer shows your exact git credentials for reference.
 
 ## Identity Deduplication
 
 Git users often have multiple identities (personal email, work email, GitHub noreply address). gx merges these using a union-find algorithm that links identities sharing any of:
 
-- **Email address** -- exact match
-- **Email username** -- the part before `@` (e.g., `alice` from `alice@example.com` and `alice@work.com`)
-- **Author name** -- case-insensitive match
+- **Email address**: exact match (case-insensitive)
+- **Email username**: the part before `@` (e.g., `alice` from `alice@example.com` and `alice@work.com`)
+- **Author name**: case-insensitive match
 
-This means a contributor who has committed as "Alice <alice@gmail.com>" and "Alice <alice@work.com>" appears as a single entry with both emails listed.
+This means a contributor who has committed as `Alice <alice@gmail.com>` and `Alice <alice@work.com>` appears as a single entry with both emails listed. The longest name is kept as the display name (usually the real full name).
 
-The "Email" column shows all known email addresses for that contributor. The "You" row is highlighted based on matching your `git config user.name` or `git config user.email`.
+## More Examples
 
-## Examples
+Show the top 10 contributors:
 
-<CodeGroup>
-```bash Top 10 contributors
-$ gx who -n 10
+```bash
+gx who -n 10
 ```
 
-```bash Contributors since a date
-$ gx who --since 2024-06-01
+Only count contributions from the last 6 months:
+
+```bash
+gx who --since 6months
 ```
 
-```bash Top 3 contributors
-$ gx who -n 3
-```
-</CodeGroup>
+Only count contributions since a specific date:
 
-<Accordion title="How it works">
-- Uses `git shortlog -sne --all` to gather all contributors across all branches
-- Applies union-find deduplication on email, email username, and author name
-- "Last Active" is determined by the most recent commit from that author in the repo
-- The current user is detected via `git config user.name` and `git config user.email`
-- Sorting is by total commit count (descending)
+```bash
+gx who --since 2024-01-01
+```
+
+<Accordion title="How it works under the hood">
+1. Runs `git shortlog -sne --all` to gather all contributors across all branches
+2. Parses each line into name, email, and commit count
+3. Applies union-find deduplication: any two entries sharing an email, email username (before @), or lowercase name get merged
+4. The merged entry keeps the longest name and sums all commit counts
+5. All unique emails are collected into the Email column
+6. "You" is detected by matching `git config user.email` against the email set
+7. Results are sorted by commit count descending
 </Accordion>

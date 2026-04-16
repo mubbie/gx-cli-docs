@@ -8,6 +8,12 @@
     "dark": "#0891b2"
   },
   "favicon": "/favicon.svg",
+  "metadata": {
+    "og:image": "/images/og.png",
+    "og:site_name": "gx",
+    "og:title": "gx: Git Productivity Toolkit",
+    "og:description": "25 commands for everyday git, stacked PRs, and code insight."
+  },
   "navigation": {
     "tabs": [
       {
@@ -86,6 +92,10 @@
       {
         "label": "GitHub",
         "href": "https://github.com/mubbie/gx-cli"
+      },
+      {
+        "label": "mubbie.dev",
+        "href": "https://mubbie.dev"
       }
     ],
     "primary": {
@@ -94,9 +104,13 @@
       "href": "/installation"
     }
   },
+  "appearance": {
+    "default": "dark"
+  },
   "footer": {
     "socials": {
-      "github": "https://github.com/mubbie/gx-cli"
+      "github": "https://github.com/mubbie/gx-cli",
+      "website": "https://mubbie.dev"
     }
   }
 }
