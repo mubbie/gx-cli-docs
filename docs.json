@@ -107,6 +107,12 @@
   "appearance": {
     "default": "dark"
   },
+  "contextual": {
+    "options": [
+      "copy",
+      "view"
+    ]
+  },
   "footer": {
     "socials": {
       "github": "https://github.com/mubbie/gx-cli",
